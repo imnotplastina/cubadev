@@ -2,45 +2,23 @@
 
 declare(strict_types = 1);
 
-bcscale(9);
-
-interface Castable {}
-
-final readonly class AmountValue implements Castable
+function distribute_discount(int $discount, array $prices): array
 {
-    public function __construct(
-        private string $value
-    ) {
-        if (! is_numeric($value)) {
-            throw new \InvalidArgumentException(
-                'Invalid amount value: ' . $this->value
-            );
-        }
+    $totalPrice = array_sum($prices);
+
+    if ($totalPrice === 0) {
+        return $prices;
     }
 
-    public function value(): string
-    {
-        return $this->value;
+    $discountedPrices = [];
+
+    foreach ($prices as $price) {
+        $discountForItem = ($price / $totalPrice) * $discount;
+
+        $newPrice = $price - $discountForItem;
+
+        $discountedPrices[] = round($newPrice, 2);
     }
 
-    public function sub(string $amount): self
-    {
-        return new self(bcsub($this->value, $amount));
-    }
-}
-
-final class Discount
-{
-    public function distributeDiscount(AmountValue $discount, array $prices): array
-    {
-        $discountedPrices = [];
-
-        foreach ($prices as $price) {
-            $discountedPrice = (new AmountValue($price))->sub($discount->value());
-
-            $discountedPrices[] = $discountedPrice;
-        }
-
-        return $discountedPrices;
-    }
+    return $discountedPrices;
 }
